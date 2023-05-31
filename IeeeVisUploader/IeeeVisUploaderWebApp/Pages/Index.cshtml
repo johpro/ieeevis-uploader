@@ -1,0 +1,241 @@
+﻿@page "{auth}/{action}/{uid}"
+@using IeeeVisUploaderWebApp.Helpers
+@model IndexModel
+@{
+    ViewData["Title"] = Model.Uid != "_" ? "Material for " + Model.Uid : "Material";
+    var signer = new UrlSigner();
+    var uploadExpiry = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds();
+}
+
+
+@foreach (var (uid, lst) in Model.Items)
+{
+    var blockedFiles = DataProvider.Events
+        .GetValueOrDefault(HelperMethods.GetEventFromUid(uid))?
+        .FilesBlockedForUpload;
+
+    <h4 class="mt-4">Material for @uid
+    
+        @if (Model.Action == "get")
+        {
+            var rawUrl = lst.Select(f => f.RawDownloadUrl).FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+            if (rawUrl != null)
+            {
+                var downloadFolderUrl = Url.RouteUrl(new
+                {
+                    uid,  auth = signer.GetUrlAuth(uid, ":download-folder:", uploadExpiry), expiry = uploadExpiry,
+                    controller = "Api", Action = "DownloadFolder"
+                });
+            
+                <a href="@downloadFolderUrl" class="btn btn-outline-primary btn-sm" style="display: inline-block; margin-left: 2em;" target="_blank">Download Folder</a>
+
+
+            
+            }
+        }
+
+    </h4>
+
+    
+
+    @foreach (var file in lst)
+    {
+        var id = $"{uid}_{file.FileTypeId}";
+        var ftd = DataProvider.FileTypes[file.FileTypeId];
+        var allowUpload = Model.Action == "upload" && (blockedFiles == null || blockedFiles.All(s => s != file.FileTypeId));
+        <h5 class="mt-2">@file.Name</h5>
+
+        @if (file.IsPresent)
+        {
+            <div class="mb-2">
+                <a href="@file.DownloadUrl" target="_blank">@file.FileName</a>
+
+
+            </div>
+            <div class="mb-1 filestats">
+                <span class="stats-label">Size:</span> @file.FileSize bytes
+                <span class="stats-label sec">SHA-256 Checksum:</span> @file.Checksum
+                <span class="stats-label sec">Uploaded:</span> @file.LastUploaded?.ToString("R")
+
+
+                @if (allowUpload)
+                {
+                    var deleteUrl = Url.RouteUrl(new { uid = uid, auth = signer.GetUrlAuth(uid, file.FileTypeId, uploadExpiry), expiry = uploadExpiry, itemId = file.FileTypeId, controller = "Api", Action = "DeleteFile" });
+
+                    <button type="button" class="btn btn-outline-secondary btn-sm"
+                            style="margin-left: 1em; display: inline-block; font-size: 0.9em; padding: 0.2em 0.6em;"
+                            data-bs-toggle="modal"
+                            data-bs-target="#confirm-delete-@id">
+                        Delete
+                    </button>
+
+
+                    <div id="error-delete-@id" class="alert alert-danger mt-1 d-none" role="alert">
+                    </div>
+
+
+                    <div class="modal fade" id="confirm-delete-@id"
+                         tabindex="-1" aria-labelledby="Confirm Delete"
+                         aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Confirm</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cancel"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Are you sure want to delete the file '@file.FileName'?
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger" onclick="deleteFile('@id', '@deleteUrl');">DELETE</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if ((file.Errors?.Count ?? 0) == 0 && (file.Warnings?.Count ?? 0) == 0)
+            {
+            }
+
+            @if (file.Errors is { Count: > 0 })
+            {
+                <div class="mb-2 row">
+                    <p class="errors-heading notes">Our automatic tests have concluded that there are issues with your upload that need to be fixed:</p>
+                    @foreach (var error in file.Errors)
+                    {
+                        <div class="error-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" class="exclamation svelte-ufij1j" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"></path></svg>
+                            @error
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (file.Warnings is { Count: > 0 })
+            {
+                <div class="mb-2 row">
+                    <p class="warnings-heading notes">Our automatic tests have resulted in warnings that you may want to address:</p>
+                    @foreach (var s in file.Warnings)
+                    {
+                        <div class="warning-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1rem" height="1rem" class="warning-mark svelte-ufij1j" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 4a.905.905 0 0 0-.9.995l.35 3.507a.552.552 0 0 0 1.1 0l.35-3.507A.905.905 0 0 0 8 4zm.002 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"></path></svg>
+                            @s
+                        </div>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <p class="missing-file">No file uploaded yet.</p>
+        }
+
+        @if (allowUpload)
+        {
+            <form id="uploadForm-@id" method="post"
+                  action="@Url.RouteUrl(new { uid = uid, auth = signer.GetUrlAuth(uid, file.FileTypeId, uploadExpiry), expiry = uploadExpiry, itemId = file.FileTypeId, controller = "Api", Action = "UploadFile" })"
+                  enctype="multipart/form-data" onsubmit="uploadFile(this, '@id');return false;">
+
+                <div class="input-group mt-3">
+                    <input type="file" class="form-control" id="file-@id" name="file" aria-label="Upload" accept="@(ftd.FileExtensions is {Length:>0} ? string.Join(',', ftd.FileExtensions.Select(s => "." + s)) : "")">
+                    <input id="upload-btn-@id" class="btn btn-outline-secondary" type="submit" value="Upload" />
+                    <button id="upload-spinning-btn-@id" class="btn btn-outline-secondary d-none" type="button" disabled>
+                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                        Uploading...
+                    </button>
+                </div>
+
+                <div id="error-@id" class="alert alert-danger mt-1 d-none" role="alert">
+                </div>
+
+
+            </form>
+        }
+
+
+        <div class="@(allowUpload ? "mb-5" : "mb-2")"></div>
+    }
+}
+
+
+
+@section Scripts {
+    <script>
+        "use strict";
+
+        async function deleteFile(id, deleteUrl) {
+            const errorAlert = document.getElementById("error-delete-" + id);
+            errorAlert.classList.add("d-none");
+
+            let resp = null;
+            try {
+                const response = await fetch(deleteUrl, {
+                    method: 'POST'
+                });
+                resp = await response.json();
+                let statusText = response.statusText;
+                if (resp && resp.errorMessage && !response.ok)
+                    statusText = resp.errorMessage;
+                if (!response.ok) {
+                    errorAlert.innerText = "The operation failed: " + statusText;
+                    errorAlert.classList.remove("d-none");
+                }
+                else {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorAlert.innerText = "The operation failed: " + error;
+                errorAlert.classList.remove("d-none");
+            }
+        }
+        
+        let uploadInProgress = false;
+
+        async function uploadFile(oFormElement, id) {
+            if (uploadInProgress)
+                return;
+            const formData = new FormData(oFormElement);
+            const uploadBtn = document.getElementById("upload-btn-" + id);
+            const uploadSpinningBtn = document.getElementById("upload-spinning-btn-" + id);
+            const errorAlert = document.getElementById("error-" + id);
+            uploadBtn.classList.add("d-none");
+            errorAlert.classList.add("d-none");
+            uploadSpinningBtn.classList.remove("d-none");
+            uploadInProgress = true;
+            let resp = null;
+            try {
+                const response = await fetch(oFormElement.action, {
+                    method: 'POST',
+                    body: formData
+                });
+                try {
+                resp = await response.json();
+                }
+                catch (err) { }
+                let statusText = response.statusText;
+                if (resp && resp.errorMessage && !response.ok)
+                    statusText = resp.errorMessage;
+                if (!response.ok) {
+                    errorAlert.innerText = "The upload failed: " + statusText;
+                    errorAlert.classList.remove("d-none");
+                }
+                else {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorAlert.innerText = "The upload failed: " + error;
+                errorAlert.classList.remove("d-none");
+            }
+            finally {
+                uploadBtn.classList.remove("d-none");
+                uploadSpinningBtn.classList.add("d-none");
+                uploadInProgress = false;
+            }
+        }
+    </script>
+}

@@ -1,0 +1,82 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+
+.bg-header {
+    background-color: #e4cfa2;
+}
+
+.header-img {
+    height: 2rem;
+}
+
+.navbar .h4 {
+    color: rgb(127, 85, 28);
+}
+    
+
+.notes {
+    margin: .3rem 0 0;
+    font-weight: 700;
+    font-size: 1rem
+}
+
+.bg-navbar {
+    background-color: rgb(238, 222, 201);
+}
+
+.errors-heading,
+.error-item {
+    color: #e34a33
+}
+
+.exclamation {
+    fill: #e34a33
+}
+
+.warnings-heading,
+.warning-item {
+    color: #99994e
+}
+
+.warning-mark {
+    fill: #99994e
+}
+
+.filestats {
+    font-size: 0.8rem;
+    color: rgb(115, 115, 115)
+}
+
+.stats-label {
+    display: inline-block;
+    font-weight: bold;
+}
+
+.stats-label.sec {
+    margin-left: 1em;
+}
+
+.missing-file {
+    color: rgb(44, 14, 14);
+}
