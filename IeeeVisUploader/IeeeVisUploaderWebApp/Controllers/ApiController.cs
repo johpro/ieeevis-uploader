@@ -96,7 +96,7 @@ namespace IeeeVisUploaderWebApp.Controllers
                 path = $"{rootPath}{uid}/";
             }
 
-            var reqBody = new { RootPath = rootPath, Paths = new[] { path } };
+            var reqBody = new { RootPath = path, Paths = new[] { path } };
             var resp = await _httpClient.PostAsJsonAsync(_downloadFolderUrl, reqBody, HttpContext.RequestAborted);
             if (HttpContext.RequestAborted.IsCancellationRequested)
                 return;

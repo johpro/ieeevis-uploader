@@ -5,13 +5,43 @@
     ViewData["Title"] = Model.Uid != "_" ? "Material for " + Model.Uid : "Material";
     var signer = new UrlSigner();
     var uploadExpiry = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds();
+    var isPaper = Model.Uid != "_" && Model.Uid?.Contains("_") == true;
+    var prevEvent = "";
 }
 
 
-@foreach (var (uid, lst) in Model.Items)
+@foreach (var (uid, lst) in Model.Items.OrderBy(it => it.uid))
 {
+    var eventId = HelperMethods.GetEventFromUid(uid);
+    if (!isPaper && eventId != prevEvent)
+    {
+        prevEvent = eventId;
+        <h3>Event @eventId</h3>
+
+        if (Model.Action == "get")
+        {
+            var rawUrl = Model.Items.Where(it => it.uid.StartsWith(eventId))
+                .SelectMany(f => f.files)
+                .Select(it => it.RawDownloadUrl)
+                .FirstOrDefault(s => !string.IsNullOrWhiteSpace(s));
+            if (rawUrl != null)
+            {
+                var downloadFolderUrl = Url.RouteUrl(new
+                {
+                    uid = eventId,
+                    auth = signer.GetUrlAuth(eventId, ":download-folder:", uploadExpiry),
+                    expiry = uploadExpiry,
+                    controller = "Api", Action = "DownloadFolder"
+                });
+
+                <div>
+                    <a href="@downloadFolderUrl" class="btn btn-primary btn-sm" target="_blank">Download ALL @eventId Submissions</a>
+                </div>
+            }
+        }
+    }
     var blockedFiles = DataProvider.Events
-        .GetValueOrDefault(HelperMethods.GetEventFromUid(uid))?
+        .GetValueOrDefault(eventId)?
         .FilesBlockedForUpload;
 
     <h4 class="mt-4">Material for @uid
@@ -27,7 +57,7 @@
                     controller = "Api", Action = "DownloadFolder"
                 });
             
-                <a href="@downloadFolderUrl" class="btn btn-outline-primary btn-sm" style="display: inline-block; margin-left: 2em;" target="_blank">Download Folder</a>
+                <a href="@downloadFolderUrl" class="btn btn-outline-primary btn-sm" style="display: inline-block; margin-left: 2em;" target="_blank">Download @uid Folder</a>
 
 
             
