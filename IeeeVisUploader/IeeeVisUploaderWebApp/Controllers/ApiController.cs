@@ -96,6 +96,7 @@ namespace IeeeVisUploaderWebApp.Controllers
                 path = $"{rootPath}{uid}/";
             }
 
+            _logger.LogInformation($"{uid} folder download requested");
             var reqBody = new { RootPath = path, Paths = new[] { path } };
             var resp = await _httpClient.PostAsJsonAsync(_downloadFolderUrl, reqBody, HttpContext.RequestAborted);
             if (HttpContext.RequestAborted.IsCancellationRequested)
@@ -238,6 +239,7 @@ namespace IeeeVisUploaderWebApp.Controllers
                 }
                 if(!await DeleteFile(collF))
                     return Fail("delete was not successful");
+                _logger.LogInformation($"{uid} file upload for {itemId} deleted");
                 return Json(new { statusCode = 200 });
             }
             finally
