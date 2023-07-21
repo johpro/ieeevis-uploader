@@ -22,7 +22,6 @@ namespace VideoCheckingLib
 
         public VideoCheckResult CheckVideo(string path, VideoRequirements requirements)
         {
-            var res = new VideoCheckResult();
 
             
             var ff = FfProbe.RunFfProbe(path);
@@ -31,6 +30,7 @@ namespace VideoCheckingLib
                     out var durationSec))
                 durationSec = -1;
 
+            var res = new VideoCheckResult{RawFfProbeOutput = ff};
 
             if (durationSec < requirements.MinDuration.TotalSeconds)
             {
@@ -61,6 +61,7 @@ namespace VideoCheckingLib
                 return res;
             res.HasExactlyOneVideoStream = videoStreams.Length == 1;
             var videoS = videoStreams[0];
+            res.RawVideoFfProbeOutput = videoS;
             res.IsVideoCodecOk = !(requirements.VideoCodecs is { Length: > 0 } &&
                                    requirements.VideoCodecs
                                        .All(s2 => !string.Equals(videoS.codec_name, s2,
@@ -102,6 +103,7 @@ namespace VideoCheckingLib
             {
                 res.HasAudioStream = true;
                 res.IsAudioCodecOk = true;
+                res.RawAudioFfProbeOutput = audioStreams[0];
                 
                 if (requirements.AudioCodecs is { Length: > 0 })
                 {
@@ -124,42 +126,43 @@ namespace VideoCheckingLib
         public void AddResultsToErrorsAndWarnings(VideoCheckResult result, VideoRequirements req,
             List<string> errors, List<string> warnings)
         {
+            var ff = result.RawFfProbeOutput;
             if (!result.IsVideoPackageFormatOk)
-                errors.Add($"the video package format is not as expected (expected {ArrayToString(req.PackageFormat)})");
+                errors.Add($"the video package format ({ff.format?.format_name}) is not as expected (expected {ArrayToString(req.PackageFormat)})");
             if (!result.IsVideoCodecOk)
-                errors.Add($"the video codec is not as expected (expected {ArrayToString(req.VideoCodecs)})");
+                errors.Add($"the video codec ({result.RawVideoFfProbeOutput?.codec_name}) is not as expected (expected {ArrayToString(req.VideoCodecs)})");
             if(!result.HasExactlyOneVideoStream)
                 errors.Add("the file has either none or too many video streams");
             if (!result.IsFrameSizeOk)
                 errors.Add($"the width and/or height of the video are not as expected (expected {ArrayToString(req.FrameSizes?.Select(f => $"{f.Width}x{f.Height}").ToArray())})");
             if (!result.IsFrameRateOk)
-                errors.Add($"the frame rate is not as expected (expected {ArrayToString(req.FrameRates)})");
+                errors.Add($"the frame rate ({result.RawVideoFfProbeOutput?.r_frame_rate}) is not as expected (expected {ArrayToString(req.FrameRates)})");
             if (!result.HasAudioStream)
                 errors.Add("the file does not have an audio stream");
             if (result.HasTooManyAudioStreams)
                 errors.Add("the file has too many audio streams");
             if (!result.IsAudioCodecOk)
-                errors.Add($"the audio codec is not as expected (expected {ArrayToString(req.AudioCodecs)})");
+                errors.Add($"the audio codec ({result.RawAudioFfProbeOutput?.codec_name}) is not as expected (expected {ArrayToString(req.AudioCodecs)})");
             switch (result.AspectRatio)
             {
                 case AspectRatioResult.NotDefined:
                     warnings.Add($"the aspect ratio of the video is not explicitly defined");
                     break;
                 case AspectRatioResult.Different:
-                    errors.Add($"the defined aspect ratio is not as expected (expected {req.AspectRatio})");
+                    errors.Add($"the defined aspect ratio ({result.RawVideoFfProbeOutput?.display_aspect_ratio}) is not as expected (expected {req.AspectRatio})");
                     break;
             }
 
             switch (result.Duration)
             {
                 case DurationResult.TooLong:
-                    errors.Add("the duration of the video is too long");
+                    errors.Add($"the duration of the video ({ff.format?.duration}s) is too long");
                     break;
                 case DurationResult.TooShort:
-                    errors.Add("the duration of the video is too short");
+                    errors.Add($"the duration of the video ({ff.format?.duration}s) is too short");
                     break;
                 case DurationResult.LongerThanRecommended:
-                    warnings.Add("the duration of the video is longer than recommended");
+                    warnings.Add($"the duration of the video ({ff.format?.duration}s) is longer than recommended");
                     break;
             }
         }

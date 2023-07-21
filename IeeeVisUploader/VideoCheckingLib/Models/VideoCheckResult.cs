@@ -24,7 +24,9 @@ namespace VideoCheckingLib.Models
         public bool HasExactlyOneVideoStream { get; set; }
         public bool HasAudioStream { get; set; }
         public bool HasTooManyAudioStreams { get; set; }
-
+        public FfProbeOutput RawFfProbeOutput { get; set; }
+        public Stream? RawVideoFfProbeOutput { get; set; }
+        public Stream? RawAudioFfProbeOutput { get; set; }
     }
 
     public enum DurationResult
