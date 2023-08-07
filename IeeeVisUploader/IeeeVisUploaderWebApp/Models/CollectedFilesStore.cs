@@ -13,9 +13,13 @@ namespace IeeeVisUploaderWebApp.Models
     {
 
         private readonly object _lck = new();
+        private readonly object _saveLck = new();
         private readonly string _fileName;
 
         private readonly Dictionary<string, List<CollectedFile>> _filesPerPaper = new();
+        private long _version;
+        private bool _savingFailed;
+
 
         public CollectedFilesStore(string fileName)
         {
@@ -25,11 +29,11 @@ namespace IeeeVisUploaderWebApp.Models
                 foreach (var l in File.ReadLines(fileName))
                 {
                     var f = JsonSerializer.Deserialize<CollectedFile>(l);
-                    if(f == null)
+                    if (f == null)
                         continue;
                     ref var list = ref CollectionsMarshal.GetValueRefOrAddDefault(_filesPerPaper, f.ParentUid, out _);
                     if (list == null)
-                        list = new List<CollectedFile>{f};
+                        list = new List<CollectedFile> { f };
                     else
                         list.Add(f);
                 }
@@ -120,7 +124,7 @@ namespace IeeeVisUploaderWebApp.Models
                         break;
                     }
                 }
-                if(!updated)
+                if (!updated)
                     list.Add(f);
             }
         }
@@ -134,28 +138,66 @@ namespace IeeeVisUploaderWebApp.Models
             }
         }
 
+        public void EnsureStoreIsOnDisk()
+        {
+            lock (_lck)
+            {
+                if (!_savingFailed)
+                    return;
+            }
+
+            Save();
+        }
+
 
         public void Save()
         {
-            var files = GetAllCollectedFilesCopy();
+
             var tmpFn = _fileName + Guid.NewGuid().ToString("N");
+            long version;
+            List<CollectedFile> files;
+            lock (_lck)
+            {
+                files = GetAllCollectedFilesCopy();
+                version = ++_version;
+            }
+
             try
             {
                 File.WriteAllLines(tmpFn,
                     files.Select(f => JsonSerializer.Serialize(f, JsonSerializerOptions.Default)));
-                File.Move(tmpFn, _fileName, true);
+
+
+                lock (_lck)
+                {
+                    if (_version == version)
+                    {
+                        File.Move(tmpFn, _fileName, true);
+                        _savingFailed = false;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                lock (_lck)
+                {
+                    _savingFailed = true;
+                }
+
+                throw;
             }
             finally
             {
                 try
                 {
-                    if(File.Exists(tmpFn))
+                    if (File.Exists(tmpFn))
                         File.Delete(tmpFn);
                 }
-                catch (Exception )
+                catch (Exception)
                 {
                 }
             }
+
         }
     }
 }

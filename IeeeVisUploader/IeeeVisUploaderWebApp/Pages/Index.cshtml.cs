@@ -44,6 +44,14 @@ namespace IeeeVisUploaderWebApp.Pages
             }
 
             Items = HelperMethods.RetrieveCollectedFiles(_signer, Uid);
+            try
+            {
+                DataProvider.CollectedFiles.EnsureStoreIsOnDisk();
+            }
+            catch (Exception )
+            {
+                
+            }
 
             return Page();
         }
