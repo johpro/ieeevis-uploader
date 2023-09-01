@@ -36,6 +36,7 @@ app.MapRazorPages();
 var signer = new UrlSigner();
 var getUrlsUrl = $"/Api/urls/{signer.GetUrlAuth("urls", "")}/<uid>";
 app.Logger.LogInformation($"obtain UID urls with {getUrlsUrl}");
+app.Logger.LogInformation($"delete UIDs with POST /Api/delete/{signer.GetUrlAuth("delete", "")}/<uids>");
 
 
 app.Run();

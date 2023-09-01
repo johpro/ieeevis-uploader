@@ -4,6 +4,8 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
@@ -133,6 +135,30 @@ namespace IeeeVisUploaderWebApp.Models
                 }
                 if (!updated)
                     list.Add(f);
+            }
+        }
+
+        public bool DeleteUid(string uid, bool onlyIfNoUploads = true)
+        {
+            lock (_lck)
+            {
+                ref var list = ref CollectionsMarshal.GetValueRefOrNullRef(_filesPerPaper, uid);
+                if (Unsafe.IsNullRef(ref list))
+                {
+                    return false;
+                }
+
+                if (onlyIfNoUploads && list is { Count: > 0 })
+                {
+                    foreach (var f in list)
+                    {
+                        if (!string.IsNullOrEmpty(f.RawDownloadUrl))
+                            return false;
+                    }
+                }
+
+                _filesPerPaper.Remove(uid);
+                return true;
             }
         }
 

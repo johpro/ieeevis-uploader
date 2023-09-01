@@ -205,6 +205,26 @@ namespace IeeeVisUploaderWebApp.Controllers
         }
 
 
+
+        [HttpPost]
+        [Route("delete/{auth}/{uids}")]
+        public IActionResult DeleteItems(string auth, string uids)
+        {
+            var authCorrect = _signer.GetUrlAuth("delete", "");
+            if (!UrlSigner.SafeCompareEquality(authCorrect, auth))
+            {
+                return new BadRequestResult();
+            }
+
+            foreach (var uid in uids.Split(','))
+            {
+                DataProvider.CollectedFiles.DeleteUid(uid);
+            }
+            DataProvider.CollectedFiles.Save();
+            return Json(new { statusCode = 200 });
+        }
+
+
         [HttpPost]
         [Route("delete/{uid}/{itemId}/{expiry}/{auth}")]
         public async Task<IActionResult> DeleteFile(string uid, string itemId, long expiry, string auth)
