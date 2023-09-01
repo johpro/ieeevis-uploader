@@ -138,13 +138,9 @@ namespace IeeeVisUploaderWebApp.Controllers
             {
                 return new BadRequestResult();
             }
-
-            var eventId = HelperMethods.GetEventFromUid(uid);
-            if (char.IsDigit(uid[^1]) && DataProvider.Events.ContainsKey(eventId))
-                HelperMethods.EnsureCollectedFiles(uid);
             
-
-
+            HelperMethods.EnsureCollectedFiles(uid);
+            
             var previewItemTypes = new[] { "video-ff", "video-ff-subs" };
             var previewItemTypesS = string.Join('|', previewItemTypes);
             var uploadAuth = _signer.GetUrlAuth("upload", uid);

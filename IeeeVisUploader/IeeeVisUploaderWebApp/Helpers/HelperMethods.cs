@@ -22,6 +22,18 @@ namespace IeeeVisUploaderWebApp.Helpers
 
         }
 
+        public static string GetEventFromUid(string? uid, out string typePrefix)
+        {
+            typePrefix = "";
+            if (string.IsNullOrEmpty(uid))
+                return "";
+            var res = GetEventFromUid(uid);
+            var idx = uid.IndexOf('-');
+            if (idx != -1)
+                typePrefix = uid.Substring(0, idx);
+            return res;
+        }
+
 
         public static List<CollectedFile> EnsureCollectedFiles(string uid)
         {
@@ -29,7 +41,17 @@ namespace IeeeVisUploaderWebApp.Helpers
             if (files.Count != 0)
                 return files;
 
-            if (!DataProvider.Events.TryGetValue(GetEventFromUid(uid), out var eventItem))
+            //check validity / format of uid
+            if (string.IsNullOrEmpty(uid) || uid.Count(ch => ch == '-' || ch == '_') != 2)
+                return files;
+            var idx = uid.LastIndexOfAny(new[] { '_', '-' });
+            var numberStr = idx == -1 ? "" : uid.Substring(idx+1);
+            if (string.IsNullOrEmpty(numberStr) || numberStr.Any(ch => !char.IsDigit(ch)))
+                return files;
+
+            if (!DataProvider.Events.TryGetValue(GetEventFromUid(uid, out var typePrefix),
+                    out var eventItem) &&
+                !DataProvider.Events.TryGetValue(typePrefix, out eventItem))
             {
                 return files;
             }
