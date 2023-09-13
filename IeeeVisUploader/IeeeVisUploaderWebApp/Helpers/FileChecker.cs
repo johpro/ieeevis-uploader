@@ -39,8 +39,12 @@ namespace IeeeVisUploaderWebApp.Helpers
             {
                 var res = _videoChecker.CheckVideo(path, videoReq);
                 _videoChecker.AddResultsToErrorsAndWarnings(res, videoReq, file.Errors, file.Warnings);
-                var ares = _audioChecker.CheckAudio(path);
-                _audioChecker.AddResultsToErrorsAndWarnings(ares, file.Errors, file.Warnings);
+                if (res.HasAudioStream)
+                {
+                    var ares = _audioChecker.CheckAudio(path);
+                    _audioChecker.AddResultsToErrorsAndWarnings(ares, file.Errors, file.Warnings);
+                }
+
                 return;
             }
 

@@ -12,7 +12,7 @@
 
 @foreach (var (uid, lst) in Model.Items.OrderBy(it => it.uid))
 {
-    var eventId = HelperMethods.GetEventFromUid(uid);
+    var eventId = HelperMethods.GetEventFromUid(uid, out var eventTypePrefix);
     if (!isPaper && eventId != prevEvent)
     {
         prevEvent = eventId;
@@ -40,9 +40,9 @@
             }
         }
     }
-    var blockedFiles = DataProvider.Events
-        .GetValueOrDefault(eventId)?
-        .FilesBlockedForUpload;
+    var blockedFiles = (DataProvider.Events.GetValueOrDefault(eventId)
+                        ?? DataProvider.Events.GetValueOrDefault(eventTypePrefix))?
+                    .FilesBlockedForUpload;
 
     <h4 class="mt-4">Material for @uid
     
@@ -72,7 +72,8 @@
     {
         var id = $"{uid}_{file.FileTypeId}";
         var ftd = DataProvider.FileTypes[file.FileTypeId];
-        var allowUpload = Model.Action == "upload" && (blockedFiles == null || blockedFiles.All(s => s != file.FileTypeId));
+        var allowUpload = Model.Action == "upload" && (blockedFiles == null || blockedFiles.Count == 0 ||
+                                                       blockedFiles[0] != "*" && blockedFiles.All(s => s != file.FileTypeId));
         <h5 class="mt-2">@file.Name</h5>
 
         @if (file.IsPresent)
