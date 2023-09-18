@@ -42,7 +42,7 @@ namespace IeeeVisUploaderWebApp.Helpers
                 return files;
 
             //check validity / format of uid
-            if (string.IsNullOrEmpty(uid) || uid.Count(ch => ch == '-' || ch == '_') != 2)
+            if (string.IsNullOrEmpty(uid) || uid.Count(ch => ch == '-' || ch == '_') < 2)
                 return files;
             var idx = uid.LastIndexOfAny(new[] { '_', '-' });
             var numberStr = idx == -1 ? "" : uid.Substring(idx+1);
