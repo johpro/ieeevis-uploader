@@ -5,7 +5,7 @@
     ViewData["Title"] = Model.Uid != "_" ? "Material for " + Model.Uid : "Material";
     var signer = new UrlSigner();
     var uploadExpiry = DateTimeOffset.UtcNow.AddHours(1).ToUnixTimeSeconds();
-    var isPaper = Model.Uid != "_" && Model.Uid?.Contains("_") == true;
+    var isPaper = Model.Uid != "_" && Model.Uid is {Length: > 0 } && char.IsDigit(Model.Uid[^1]);
     var prevEvent = "";
 }
 
