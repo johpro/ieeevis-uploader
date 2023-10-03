@@ -17,12 +17,19 @@ namespace IeeeVisUploaderWebApp.Helpers
 
         private readonly SHA256 _sha256 = SHA256.Create();
         private readonly string _privateKey;
+        private readonly string _tokenKey;
 
         public UrlSigner()
         {
             _privateKey = DataProvider.Settings.AuthSignaturePrivateKey;
+            _tokenKey = DataProvider.Settings.BunnyTokenKey;
         }
 
+        public UrlSigner(string privateKey, string tokenKey)
+        {
+            _privateKey = privateKey;
+            _tokenKey = tokenKey;
+        }
        
 
         public string GetUrlAuth(string? action, string? uid)
@@ -75,10 +82,9 @@ namespace IeeeVisUploaderWebApp.Helpers
             return new string(s.AsSpan(0, len));
 
         }
-
         public string SignBunnyUrl(string fileUrl, DateTimeOffset expiry, bool isDirectory = false)
         {
-            var securityKey = DataProvider.Settings.BunnyTokenKey;
+            var securityKey = _tokenKey;
             var url = new Url(fileUrl);
             var signaturePath = url.Path;
 
