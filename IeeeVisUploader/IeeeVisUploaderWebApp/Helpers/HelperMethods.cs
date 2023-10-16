@@ -34,6 +34,14 @@ namespace IeeeVisUploaderWebApp.Helpers
             return res;
         }
 
+        public static bool IsPaperUid(string? uid)
+        {
+            if (string.IsNullOrEmpty(uid) || uid.Count(ch => ch == '-' || ch == '_') < 2)
+                return false;
+            var idx = uid.LastIndexOfAny(new[] { '_', '-' });
+            var numberStr = idx == -1 ? "" : uid[(idx + 1)..];
+            return !string.IsNullOrEmpty(numberStr) && numberStr.All(char.IsDigit);
+        }
 
         public static List<CollectedFile> EnsureCollectedFiles(string uid)
         {
@@ -42,11 +50,7 @@ namespace IeeeVisUploaderWebApp.Helpers
                 return files;
 
             //check validity / format of uid
-            if (string.IsNullOrEmpty(uid) || uid.Count(ch => ch == '-' || ch == '_') < 2)
-                return files;
-            var idx = uid.LastIndexOfAny(new[] { '_', '-' });
-            var numberStr = idx == -1 ? "" : uid.Substring(idx+1);
-            if (string.IsNullOrEmpty(numberStr) || numberStr.Any(ch => !char.IsDigit(ch)))
+            if(!IsPaperUid(uid))
                 return files;
 
             if (!DataProvider.Events.TryGetValue(GetEventFromUid(uid, out var typePrefix),
@@ -79,14 +83,14 @@ namespace IeeeVisUploaderWebApp.Helpers
                     items.Add((id, lst));
                 }
             }
-            else if (DataProvider.Events.ContainsKey(uid))
-            {
-                items = DataProvider.CollectedFiles.GetEventCollectedFilesCopy(uid);
-            }
-            else
+            else if (IsPaperUid(uid))
             {
                 var files = EnsureCollectedFiles(uid);
                 items.Add((uid, files));
+            }
+            else
+            {
+                items = DataProvider.CollectedFiles.GetPrefixCollectedFilesCopy(uid);
             }
 
             foreach ((_, List<CollectedFile> files) in items)

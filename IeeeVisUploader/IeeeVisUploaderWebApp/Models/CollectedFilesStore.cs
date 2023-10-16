@@ -70,7 +70,7 @@ namespace IeeeVisUploaderWebApp.Models
             }
         }
 
-        public List<(string uid, List<CollectedFile> files)> GetEventCollectedFilesCopy(string eventId)
+        public List<(string uid, List<CollectedFile> files)> GetPrefixCollectedFilesCopy(string eventId)
         {
             var res = new List<(string uid, List<CollectedFile> files)>();
             lock (_lck)
@@ -78,12 +78,6 @@ namespace IeeeVisUploaderWebApp.Models
                 foreach (var (uid, l) in _filesPerPaper)
                 {
                     if(!uid.StartsWith(eventId))
-                        continue;
-                    var pos = eventId.Length;
-                    if(uid.Length <= pos)
-                        continue;
-                    var ch = uid[pos];
-                    if (ch != '-' && ch != '_')
                         continue;
                     var files = l.Select(it => it.Clone()).ToList();
                     res.Add((uid, files));
