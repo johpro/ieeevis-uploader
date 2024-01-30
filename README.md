@@ -25,6 +25,7 @@ The web app needs three configuration files in the folder 'config'.
 
 ### File Types: config/fileTypes.json
 <details>
+  
 ```
 [
   {
@@ -186,6 +187,7 @@ The web app needs three configuration files in the folder 'config'.
   }
 ]
 ```
+
 </details>
 
 ### Events: config/events.json
