@@ -1,0 +1,11 @@
+[
+    {
+        "EventId": "v",
+        "FilesToCollect": [
+            "video-ff",
+            "video-ff-subs",
+            "image",
+            "image-caption"
+        ]
+    }
+]

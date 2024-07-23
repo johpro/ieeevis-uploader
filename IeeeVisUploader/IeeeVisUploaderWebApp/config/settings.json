@@ -1,0 +1,11 @@
+{
+  "BunnyStorageZoneName": "",
+  "BunnyCdnRootUrl": "",
+  "BunnyAccessKey": "",
+  "BunnyBasePath": "",
+  "BunnyTokenKey": "",
+  "BunnyUserApiKey": "",
+  "AuthSignaturePrivateKey": "123456",
+  "FfprobePath": "/usr/local/bin/ffprobe",
+  "FfmpegPath": "/usr/local/bin/ffmpeg"
+}

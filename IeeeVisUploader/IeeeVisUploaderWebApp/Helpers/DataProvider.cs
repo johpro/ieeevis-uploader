@@ -4,6 +4,8 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+using System.Reflection;
+using System.Text;
 using System.Text.Json;
 using IeeeVisUploaderWebApp.Models;
 using VideoCheckingLib.Models;
@@ -120,7 +122,7 @@ namespace IeeeVisUploaderWebApp.Helpers
             var it = new EventItem
             {
                 EventId = "v-full",
-                FilesToCollect = new ()
+                FilesToCollect = new()
                 {
                     "video-full",
                     "video-full-subs",
@@ -206,16 +208,6 @@ namespace IeeeVisUploaderWebApp.Helpers
                 }
             };
             events.Add(it.EventId, it);
-
-            var path = AppDomain.CurrentDomain.BaseDirectory;
-            path = Path.Combine(path, "config");
-
-            var fn = Path.Combine(path, "fileTypes.json");
-            File.WriteAllText(fn, JsonSerializer.Serialize(types.Values, new JsonSerializerOptions { WriteIndented = true }));
-
-            fn = Path.Combine(path, "events.json");
-            File.WriteAllText(fn, JsonSerializer.Serialize(events.Values, new JsonSerializerOptions { WriteIndented = true }));
-
         }
 
         public static FileTypeDescription VideoBaseDescription()
@@ -241,8 +233,8 @@ namespace IeeeVisUploaderWebApp.Helpers
                         MaxRecommendedDuration = TimeSpan.FromMinutes(9),
                         MinDuration = TimeSpan.FromMinutes(1),
                         AspectRatio = "16:9",
-                        FrameRates = new []{"30/1"},
-                        FrameSizes = new []{new FrameSize(1920, 1080)},
+                        FrameRates = new[] { "30/1" },
+                        FrameSizes = new[] { new FrameSize(1920, 1080) },
                         MaxNumAudioChannels = 1,
                         CheckVoiceRecording = true
                     }
@@ -273,25 +265,24 @@ namespace IeeeVisUploaderWebApp.Helpers
             ConfigPath = path;
             if (Settings == null)
             {
-                var fn = Path.Combine(ConfigPath, "settings.json");
-                if (File.Exists(fn))
+                foreach (var name in Assembly.GetExecutingAssembly().GetManifestResourceNames())
                 {
-                    Settings = JsonSerializer.Deserialize<GeneralSettings>(File.ReadAllText(fn));
+                    Console.WriteLine(name);
                 }
-                else
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("IeeeVisUploaderWebApp.settings.json");
+                using (var reader = new StreamReader(stream, Encoding.UTF8))
                 {
-                    Settings = new();
-                    File.WriteAllText(fn, JsonSerializer.Serialize(Settings, new JsonSerializerOptions{WriteIndented = true}));
+                    Settings = JsonSerializer.Deserialize<GeneralSettings>(reader.ReadToEnd());
                 }
             }
 
             if (Events == null)
             {
-                var fn = Path.Combine(ConfigPath, "events.json");
                 Events = new Dictionary<string, EventItem>();
-                if (File.Exists(fn))
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("IeeeVisUploaderWebApp.events.json");
+                using (var reader = new StreamReader(stream, Encoding.UTF8))
                 {
-                    var events = JsonSerializer.Deserialize<EventItem[]>(File.ReadAllText(fn));
+                    var events = JsonSerializer.Deserialize<EventItem[]>(reader.ReadToEnd());
                     foreach (var item in events)
                     {
                         Events[item.EventId] = item;
@@ -301,11 +292,12 @@ namespace IeeeVisUploaderWebApp.Helpers
 
             if (FileTypes == null)
             {
-                var fn = Path.Combine(ConfigPath, "fileTypes.json");
                 FileTypes = new Dictionary<string, FileTypeDescription>();
-                if (File.Exists(fn))
+
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("IeeeVisUploaderWebApp.fileTypes.json");
+                using (var reader = new StreamReader(stream, Encoding.UTF8))
                 {
-                    var items = JsonSerializer.Deserialize<FileTypeDescription[]>(File.ReadAllText(fn));
+                    var items = JsonSerializer.Deserialize<FileTypeDescription[]>(reader.ReadToEnd());
                     foreach (var item in items)
                     {
                         FileTypes[item.Id] = item;
@@ -315,11 +307,12 @@ namespace IeeeVisUploaderWebApp.Helpers
 
             if (CollectedFiles == null)
             {
+                // Might need to fix this too
                 var fn = Path.Combine(ConfigPath, "collectedFiles.json");
                 CollectedFiles = new(fn);
             }
         }
 
-        
+
     }
 }

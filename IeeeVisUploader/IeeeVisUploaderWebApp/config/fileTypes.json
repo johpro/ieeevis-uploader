@@ -1,0 +1,159 @@
+[
+  {
+    "Id": "video-full",
+    "Name": "Presentation Video",
+    "FileName": "Presentation",
+    "FileExtensions": [
+      "mp4"
+    ],
+    "FileType": 0,
+    "IsOptional": false,
+    "PerformChecks": true,
+    "CheckInfo": {
+      "MinFileSize": 1024,
+      "MaxFileSize": 524288000,
+      "VideoRequirements": {
+        "MinDuration": "00:01:00",
+        "MaxDuration": "01:30:00",
+        "MaxRecommendedDuration": "00:20:00",
+        "PackageFormat": [
+          "mp4"
+        ],
+        "VideoCodecs": [
+          "h264"
+        ],
+        "AudioCodecs": [
+          "aac"
+        ],
+        "FrameRates": [
+          "30/1"
+        ],
+        "FrameSizes": [
+          {
+            "Width": 1920,
+            "Height": 1080
+          }
+        ],
+        "MaxNumAudioChannels": 1,
+        "AspectRatio": "16:9",
+        "CheckVoiceRecording": true
+      },
+      "ImageMaxSize": null
+    }  
+  },
+  {
+    "Id": "video-ff",
+    "Name": "Video Preview",
+    "FileName": "Preview",
+    "FileExtensions": [
+      "mp4"
+    ],
+    "FileType": 0,
+    "IsOptional": false,
+    "PerformChecks": true,
+    "CheckInfo": {
+      "MinFileSize": 1024,
+      "MaxFileSize": 31457280,
+      "VideoRequirements": {
+        "MinDuration": "00:00:15",
+        "MaxDuration": "00:00:26",
+        "MaxRecommendedDuration": null,
+        "PackageFormat": [
+          "mp4"
+        ],
+        "VideoCodecs": [
+          "h264"
+        ],
+        "AudioCodecs": [
+          "aac"
+        ],
+        "FrameRates": [
+          "30/1"
+        ],
+        "FrameSizes": [
+          {
+            "Width": 1920,
+            "Height": 1080
+          }
+        ],
+        "MaxNumAudioChannels": 1,
+        "AspectRatio": "16:9",
+        "CheckVoiceRecording": true
+      },
+      "ImageMaxSize": null
+    }
+  },
+  {
+    "Id": "video-full-subs",
+    "Name": "Presentation Video Subtitles",
+    "FileName": "Presentation",
+    "FileExtensions": [
+      "srt",
+      "sbv"
+    ],
+    "FileType": 1,
+    "IsOptional": false,
+    "PerformChecks": true,
+    "CheckInfo": {
+      "MinFileSize": 10,
+      "MaxFileSize": 2097152,
+      "VideoRequirements": null,
+      "ImageMaxSize": null
+    }
+  },
+  {
+    "Id": "video-ff-subs",
+    "Name": "Video Preview Subtitles",
+    "FileName": "Preview",
+    "FileExtensions": [
+      "srt",
+      "sbv"
+    ],
+    "FileType": 1,
+    "IsOptional": false,
+    "PerformChecks": true,
+    "CheckInfo": {
+      "MinFileSize": 10,
+      "MaxFileSize": 2097152,
+      "VideoRequirements": null,
+      "ImageMaxSize": null
+    }
+  },
+  {
+    "Id": "image",
+    "Name": "Representative Image",
+    "FileName": "Image",
+    "FileExtensions": [
+      "png"
+    ],
+    "FileType": 3,
+    "IsOptional": false,
+    "PerformChecks": true,
+    "CheckInfo": {
+      "MinFileSize": 10,
+      "MaxFileSize": 5242880,
+      "VideoRequirements": null,
+      "ImageMaxSize": {
+        "Width": 1920,
+        "Height": 1080
+      }
+    }
+  },
+  {
+    "Id": "image-caption",
+    "Name": "Representative Image Caption",
+    "FileName": "Image",
+    "FileExtensions": [
+      "txt"
+    ],
+    "FileType": 4,
+    "IsOptional": false,
+    "PerformChecks": true,
+    "CheckInfo": {
+      "MinFileSize": 10,
+      "MaxFileSize": 102400,
+      "VideoRequirements": null,
+      "ImageMaxSize": null
+    }
+  }
+]
